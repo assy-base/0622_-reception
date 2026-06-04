@@ -36,7 +36,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 840px;
+            height: 900px;
             position: relative; /* ポップアップの基準点になります */
         }
 
@@ -45,7 +45,7 @@
             background-color: #d3d3d3;
             padding: 12px;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
             color: #333;
             text-align: left;
             border-bottom: 2px solid #bcbcbc;
@@ -106,7 +106,7 @@
         .cell-name {
             flex: 1;
             padding: 10px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 500;
             word-break: break-all;
         }
@@ -125,7 +125,7 @@
             border-radius: 4px;
             background-color: var(--bg-unchecked-btn);
             color: #004085;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
@@ -253,7 +253,7 @@
     <div class="modal-overlay" id="moneyModal">
         <div class="modal-box">
             <div class="modal-title" id="modalTargetName">〇〇 様</div>
-            <div class="modal-message">参加費 ¥0 になります。</div>
+            <div class="modal-message">参加費 ¥0 。</div>
             <div style="font-size: 13px; color: #666;">お好きなお席にどうぞ</div>
             <div class="modal-buttons">
                 <button class="btn-modal btn-modal-cancel" onclick="closeModal()">戻る</button>
@@ -265,21 +265,21 @@
 
 <script>
     const initialData = [
-        { id: 1, name: "こここ こここ", checked: true },
-        { id: 2, name: "さささ さささ", checked: false },
-        { id: 3, name: "しししししし", checked: true },
-        { id: 4, name: "すすすすすす", checked: false },
-        { id: 5, name: "せせせせせせ", checked: false },
-        { id: 6, name: "そそそそそ", checked: false },
-        { id: 7, name: "たたたたたたた", checked: false },
-        { id: 8, name: "ちちちちちちち", checked: false },
-        { id: 9, name: "つつつつつつ", checked: true },
-        { id: 10, name: "てててててて", checked: false },
-        { id: 11, name: "とととととと", checked: false },
-        { id: 12, name: "とととととと", checked: false },
-        { id: 13, name: "とととととと", checked: false },
-        { id: 14, name: "とととととと", checked: false },
-        { id: 15, name: "とととととと", checked: false }
+        { id: 1, name: "増田淳", checked: true },
+        { id: 2, name: "加藤孝信", checked: false },
+        { id: 3, name: "本郷麻子", checked: true },
+        { id: 4, name: "古林いづみ", checked: false },
+        { id: 5, name: "阿部緑", checked: false },
+        { id: 6, name: "＊＊＊", checked: false },
+        { id: 7, name: "＊＊＊", checked: false },
+        { id: 8, name: "＊＊＊", checked: false },
+        { id: 9, name: "＊＊＊", checked: true },
+        { id: 10, name: "＊＊＊", checked: false },
+        { id: 11, name: "＊＊＊", checked: false },
+        { id: 12, name: "＊＊＊", checked: false },
+        { id: 13, name: "＊＊＊", checked: false },
+        { id: 14, name: "＊＊＊", checked: false },
+        { id: 15, name: "＊＊＊", checked: false }
     ];
 
     let participants = JSON.parse(localStorage.getItem('seminar_participants')) || initialData;
