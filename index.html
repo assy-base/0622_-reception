@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セミナー受付システム（集金確認版）</title>
+    <style>
+        :root {
+            --bg-default: #ffffff;
+            --bg-striped: #f5f5f5;
+            --bg-checked-row: #808080;
+            --bg-checked-btn: #fff3cd;
+            --bg-unchecked-btn: #cfe2ff;
+            --text-checked-row: #ffffff;
+            --text-default: #333333;
+        }
+
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #ffffff !important;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .tablet-container {
+            width: 95% !important;
+            max-width: 768px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 840px;
+            position: relative; /* ポップアップの基準点になります */
+        }
+
+        /* ヘッダー */
+        .header {
+            background-color: #d3d3d3;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+            text-align: left;
+            border-bottom: 2px solid #bcbcbc;
+        }
+
+        /* 検索・ステータスエリア */
+        .control-panel {
+            padding: 10px;
+            background-color: #f1f3f4;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .status-summary {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* リストエリア */
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.2s, color 0.2s;
+            min-height: 55px;
+        }
+
+        .item-row:nth-child(even) {
+            background-color: var(--bg-striped);
+        }
+
+        .cell-id {
+            width: 50px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            padding: 10px 0;
+        }
+
+        .cell-name {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .cell-action {
+            width: 130px;
+            padding: 6px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-status {
+            width: 100%;
+            padding: 10px 0;
+            border: 1px solid #b8daff;
+            border-radius: 4px;
+            background-color: var(--bg-unchecked-btn);
+            color: #004085;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.1s ease;
+        }
+
+        .item-row.checked {
+            background-color: var(--bg-checked-row) !important;
+            color: var(--text-checked-row);
+        }
+
+        .item-row.checked .cell-id {
+            color: var(--text-checked-row);
+        }
+
+        .item-row.checked .btn-status {
+            background-color: var(--bg-checked-btn);
+            border-color: #ffeeba;
+            color: #856404;
+        }
+
+        /* ========================================================
+           ✨ ここからポップアップ（モーダル）のスタイル設定
+        ========================================================= */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* 画面全体を薄暗くする */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden; /* 最初は隠しておく */
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        /* 有効化されたときに表示する設定 */
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1); /* ふわっと大きく表示 */
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .modal-message {
+            font-size: 22px;
+            font-weight: bold;
+            color: #dc3545; /* 金額を目立たせる赤色 */
+            margin: 16px 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100px;
+        }
+
+        .btn-modal-ok {
+            background-color: #338033; /* 安心感のある緑色 */
+            color: white;
+        }
+
+        .btn-modal-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tablet-container">
+    <div class="header">6/22(月)【デジタル座談会】受付フォーム</div>
+    
+    <div class="control-panel">
+        <input type="text" id="searchInput" class="search-bar" placeholder="名前で検索（ひらがななど）..." oninput="filterList()">
+        <div class="status-summary">
+            <span id="counter">受付中...</span>
+            <button onclick="resetAll()" style="padding: 2px 8px; font-size: 11px; background: #fff; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">クリア</button>
+        </div>
+    </div>
+
+    <div class="list-container" id="listContainer">
+    </div>
+
+    <div class="modal-overlay" id="moneyModal">
+        <div class="modal-box">
+            <div class="modal-title" id="modalTargetName">〇〇 様</div>
+            <div class="modal-message">参加費 ¥0 になります。</div>
+            <div style="font-size: 13px; color: #666;">お好きなお席にどうぞ</div>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-modal-cancel" onclick="closeModal()">戻る</button>
+                <button class="btn-modal btn-modal-ok" onclick="confirmStatus()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const initialData = [
+        { id: 1, name: "こここ こここ", checked: true },
+        { id: 2, name: "さささ さささ", checked: false },
+        { id: 3, name: "しししししし", checked: true },
+        { id: 4, name: "すすすすすす", checked: false },
+        { id: 5, name: "せせせせせせ", checked: false },
+        { id: 6, name: "そそそそそ", checked: false },
+        { id: 7, name: "たたたたたたた", checked: false },
+        { id: 8, name: "ちちちちちちち", checked: false },
+        { id: 9, name: "つつつつつつ", checked: true },
+        { id: 10, name: "てててててて", checked: false },
+        { id: 11, name: "とととととと", checked: false },
+        { id: 12, name: "とととととと", checked: false },
+        { id: 13, name: "とととととと", checked: false },
+        { id: 14, name: "とととととと", checked: false },
+        { id: 15, name: "とととととと", checked: false }
+    ];
+
+    let participants = JSON.parse(localStorage.getItem('seminar_participants')) || initialData;
+    let currentSelectedIndex = null; // 現在ポップアップで処理している人の番号を一時保存する変数
+
+    if (!Array.isArray(participants) || participants.length === 0 || !participants[0].hasOwnProperty('name')) {
+        participants = initialData;
+    }
+
+    function renderList() {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = '';
+
+        participants.forEach((p, index) => {
+            const row = document.createElement('div');
+            row.className = `item-row ${p.checked ? 'checked' : ''}`;
+            row.setAttribute('data-name', p.name);
+            row.id = `row-${index}`;
+
+            row.innerHTML = `
+                <div class="cell-id">${p.id}</div>
+                <div class="cell-name">${p.name}</div>
+                <div class="cell-action">
+                    <button class="btn-status" onclick="handleRowClick(${index})">
+                        ${p.checked ? '☑ 受付済' : '☐ 受付'}
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+
+        updateCounter();
+    }
+
+    // ✨ ボタンが押されたときの振り分け処理
+    function handleRowClick(index) {
+        if (participants[index].checked) {
+            // すでに受付済みの場合は、ポップアップを出さずに「未受付」に戻せるようにする
+            toggleStatus(index);
+        } else {
+            // 未受付（これから受付）の場合は、金額確認のポップアップを立ち上げる
+            openModal(index);
+        }
+    }
+
+    // ポップアップを開く
+    function openModal(index) {
+        currentSelectedIndex = index;
+        document.getElementById('modalTargetName').innerText = `${participants[index].name} 様`;
+        document.getElementById('moneyModal').classList.add('active');
+    }
+
+    // ポップアップを閉じる
+    function closeModal() {
+        document.getElementById('moneyModal').classList.remove('active');
+        currentSelectedIndex = null;
+    }
+
+    // ポップアップの「OK」を押したときの確定処理
+    function confirmStatus() {
+        if (currentSelectedIndex !== null) {
+            toggleStatus(currentSelectedIndex);
+            closeModal();
+        }
+    }
+
+    // 実際にステータスを書き換える根っこの関数
+    function toggleStatus(index) {
+        participants[index].checked = !participants[index].checked;
+        localStorage.setItem('seminar_participants', JSON.stringify(participants));
+        
+        const row = document.getElementById(`row-${index}`);
+        const btn = row.querySelector('.btn-status');
+        
+        if (participants[index].checked) {
+            row.classList.add('checked');
+            btn.innerHTML = '☑ 受付済';
+        } else {
+            row.classList.remove('checked');
+            btn.innerHTML = '☐ 受付';
+        }
+        
+        updateCounter();
+    }
+
+    function updateCounter() {
+        const total = participants.length;
+        const checkedCount = participants.filter(p => p.checked).length;
+        document.getElementById('counter').innerText = `受付済: ${checkedCount} / 全体: ${total} 名`;
+    }
+
+
+
+    function filterList() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('.item-row');
+        
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name').toLowerCase();
+            if (name.includes(query)) {
+                row.style.display = 'flex';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function resetAll() {
+        participants.forEach(p => p.checked = false);
+        localStorage.setItem('seminar_participants', JSON.stringify(participants));
+        renderList();
+    }
+
+
+    renderList();
+</script>
+
+</body>
+</html>
